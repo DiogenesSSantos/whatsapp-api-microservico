@@ -2,6 +2,7 @@ package com.git.devdioge.whatsapp_api.service
 
 import it.auties.whatsapp.api.Whatsapp
 import it.auties.whatsapp.api.Whatsapp.webBuilder
+import it.auties.whatsapp.model.jid.Jid
 import jakarta.annotation.PostConstruct
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -32,6 +33,7 @@ class WhatsappService(private var whatsapp: CompletableFuture<Whatsapp> = Comple
     }
 
 
+
     fun isConnectado() {
         if (whatsapp.get().isConnected) return
         log.warn("Reconectando")
@@ -39,5 +41,10 @@ class WhatsappService(private var whatsapp: CompletableFuture<Whatsapp> = Comple
         this.init()
     }
 
+     fun whatsappExiste(numero : String) : Boolean {
+        val jidProvide = Jid.of(numero)
+        val hasWhatsapp = whatsapp.get().hasWhatsapp { jidProvide }.get()
+        return hasWhatsapp
+    }
 
 }

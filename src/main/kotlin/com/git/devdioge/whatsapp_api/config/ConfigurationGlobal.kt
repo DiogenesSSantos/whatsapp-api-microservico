@@ -1,27 +1,21 @@
 package com.git.devdioge.whatsapp_api.config
 
-import io.swagger.v3.oas.models.OpenAPI
-import org.springdoc.core.models.GroupedOpenApi
+import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.client.RestTemplate
+import java.time.Duration
 
-/**
- * @author Diogenes Santos
- * Classe de configuração dos nosso beans Globais.
- */
 @Configuration
 class ConfigurationGlobal {
 
-    @Bean
-    fun configOpenApi() : OpenAPI {
-        return OpenAPI()
-    }
 
     @Bean
-    fun configQrController() : GroupedOpenApi {
-        return GroupedOpenApi.builder()
-            .group("QrCodeController")
-            .pathsToMatch("/whatsapp/conexao/**")
+    fun configuracaoRestTemplate() : RestTemplate {
+        return RestTemplateBuilder()
+            .rootUri("http://localhost:8080/paciente-api")
+            .connectTimeout(Duration.ofSeconds(10))
+            .readTimeout(Duration.ofSeconds(10))
             .build()
     }
 }

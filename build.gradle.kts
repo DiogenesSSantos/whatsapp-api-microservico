@@ -42,22 +42,29 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 	implementation("tools.jackson.module:jackson-module-kotlin")
-
     implementation("com.github.auties00:cobalt:0.0.10")
     implementation("javax.servlet:javax.servlet-api:4.0.1")
-
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.1")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
-
-
-	compileOnly("org.projectlombok:lombok")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
-	annotationProcessor("org.projectlombok:lombok")
-	testImplementation("org.springframework.boot:spring-boot-starter-restclient-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
+
+    compileOnly("org.projectlombok:lombok")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+    annotationProcessor("org.projectlombok:lombok")
+    testImplementation("org.springframework.boot:spring-boot-starter-restclient-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.mockito:mockito-core:4.+")
+    testImplementation("org.mockito:mockito-inline:4.+")
+    testImplementation("org.mockito:mockito-inline:5.+")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.+")
+
+
+
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 dependencyManagement {

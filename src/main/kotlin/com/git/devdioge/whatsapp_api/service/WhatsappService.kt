@@ -1,5 +1,8 @@
 package com.git.devdioge.whatsapp_api.service
 
+import com.git.devdioge.whatsapp_api.controller.dtos.PacienteRequestPostDTO
+import com.git.devdioge.whatsapp_api.controller.dtos.PacienteResponseDTO
+import com.git.devdioge.whatsapp_api.exception.WhatsappNaoConectadoException
 import it.auties.whatsapp.api.Whatsapp
 import it.auties.whatsapp.api.Whatsapp.webBuilder
 import it.auties.whatsapp.model.jid.Jid
@@ -11,7 +14,12 @@ import java.util.concurrent.CompletableFuture
 
 
 @Service
-class WhatsappService(private var whatsapp: CompletableFuture<Whatsapp> = CompletableFuture<Whatsapp>()) {
+class WhatsappService(
+    private var whatsapp: CompletableFuture<Whatsapp> = CompletableFuture<Whatsapp>(),
+    private val pacienteRestService: PacienteRestService,
+    private val n8NRestService: N8NRestService
+) {
+
     private val log: Logger = LoggerFactory.getLogger(this.javaClass)
     var qrCode: String? = null
 
@@ -33,7 +41,6 @@ class WhatsappService(private var whatsapp: CompletableFuture<Whatsapp> = Comple
     }
 
 
-
     fun isConnectado() {
         if (whatsapp.get().isConnected) return
         log.warn("Reconectando")
@@ -41,10 +48,38 @@ class WhatsappService(private var whatsapp: CompletableFuture<Whatsapp> = Comple
         this.init()
     }
 
-     fun whatsappExiste(numero : String) : Boolean {
-        val jidProvide = Jid.of(numero)
-        val hasWhatsapp = whatsapp.get().hasWhatsapp { jidProvide }.get()
-        return hasWhatsapp
+    private fun salvar(pacientePacienteRequestPostDTO: PacienteRequestPostDTO): PacienteResponseDTO {
+        val pacienteSalvo = when(whatsappExiste(pacientePacienteRequestPostDTO.numero)){
+            true -> pacienteRestService.salvar(pacientePacienteRequestPostDTO)
+            false -> { numeroNaoExite(pacientePacienteRequestPostDTO)
+                pacienteRestService.salvar(pacientePacienteRequestPostDTO)}
+        }
+        return pacienteSalvo
+    }
+
+
+
+    fun enviarMensagem(pacientePacienteRequestPostDTO: PacienteRequestPostDTO) : PacienteResponseDTO {
+        whatsappConectado()
+        val pacienteSalvo = salvar(pacientePacienteRequestPostDTO)
+        if (!pacienteSalvo.numero.equals("NUMERO_NAO_EXISTE")) {
+            n8NRestService.enviarMensagem(pacientePacienteRequestPostDTO)
+        }
+        return pacienteSalvo
+    }
+
+
+    private fun whatsappExiste(numero: String): Boolean {
+        val jid = Jid.of(numero)
+        return whatsapp.get().hasWhatsapp(jid).get()
+    }
+
+    private fun numeroNaoExite(pacientePacienteRequestPostDTO: PacienteRequestPostDTO) {
+        pacientePacienteRequestPostDTO.numero = "NUMERO_NAO_EXISTE"
+    }
+
+    private fun whatsappConectado() {
+        if (whatsapp.getNow(null) == null) throw WhatsappNaoConectadoException()
     }
 
 }

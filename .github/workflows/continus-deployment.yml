@@ -1,0 +1,60 @@
+name: continus deployment whatsapp-api-microservico
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      DEPLOYMENT_NAME: ${{ secrets.DEPLOYMENT_NAME }}
+      CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+          cache: 'gradle'
+
+      - name: Build Application JAR
+        run: ./gradlew build
+
+      - name: Docker Compose Build
+        run: docker compose build
+
+      - name: Tag and push images
+        run: |
+          TAG=${{ github.run_id }}
+          docker tag "${{ secrets.IMAGE_NAME }}:latest" "${{ secrets.IMAGE_NAME }}:${TAG}"
+          docker push "${{ secrets.IMAGE_NAME }}:${TAG}"
+          docker push "${{ secrets.IMAGE_NAME }}:latest"
+
+      - name: Deploy on VPS via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            TAG=${{ github.run_id }}
+            IMAGE="${{ secrets.IMAGE_NAME }}"
+            DEPLOYMENT="${{ secrets.DEPLOYMENT_NAME }}"
+            CONTAINER="${{ secrets.CONTAINERS_NAME }}"
+            
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            docker pull "${IMAGE}:${TAG}" || true
+          
+            kubectl set image deployment/"${DEPLOYMENT}" "${CONTAINER}"="${IMAGE}:${TAG}" -n default
+            kubectl rollout status deployment/"${DEPLOYMENT}" -n default

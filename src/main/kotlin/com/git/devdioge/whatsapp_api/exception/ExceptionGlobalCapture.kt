@@ -26,4 +26,19 @@ class ExceptionGlobalCapture {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(any)
     }
 
+
+    @ExceptionHandler(WhatsappNaoExisteException::class)
+    fun WhatsappNaoExisteException(
+        ex: WhatsappNaoExisteException,
+        req: HttpServletRequest
+    ): ResponseEntity<Any> {
+
+        val any = object {
+            val statusCode = 404
+            val mensagem = ex.message
+            val timeStamp = LocalDate.now()
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(any)
+    }
 }
